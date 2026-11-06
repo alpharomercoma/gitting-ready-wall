@@ -1,0 +1,76 @@
+---
+layout: null
+---
+{%- assign students = site.static_files | where_exp: "f", "f.path contains '/students/'" | where: "extname", ".txt" | sort_natural: "basename" -%}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GITting Ready class wall</title>
+<meta name="description" content="Everyone from the GITting Ready workshop at FEU Tech AITS, added by pull request.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#fff;--muted:#b9bdd0;--green:#3fb950;--line:#fff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{color:var(--ink);font-family:Arial,Helvetica,sans-serif;background-color:#04040c;
+background-image:radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 72% 12%,#cfd6ff,transparent),radial-gradient(1.5px 1.5px at 88% 34%,#fff,transparent),radial-gradient(1px 1px at 34% 62%,#cfd6ff,transparent),radial-gradient(1px 1px at 58% 84%,#fff,transparent),radial-gradient(60% 50% at 28% 60%,#2b1a72 0,transparent 70%);background-attachment:fixed}
+main{max-width:1180px;margin:0 auto;padding:40px 24px 64px}
+header{text-align:center;margin-bottom:40px}
+h1{font-size:clamp(32px,6vw,56px);margin:0 0 8px;line-height:1.1}
+.sub{color:var(--muted);margin:0 0 20px;font-size:18px}
+.count{font-family:"Roboto Mono",ui-monospace,Menlo,monospace;font-size:20px;margin:0 0 20px}
+.count b{color:var(--green)}
+.btn{display:inline-block;background:var(--green);color:#04130a;font-weight:700;font-size:18px;text-decoration:none;padding:12px 24px;border-radius:999px}
+.btn:hover{background:#56d364}
+.btn:focus-visible,.t:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.how{color:var(--muted);font-size:15px;margin:14px 0 0}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));row-gap:28px}
+.t{position:relative;display:block;text-align:center;color:var(--ink);text-decoration:none;padding:0 6px}
+.t::before{content:"";position:absolute;left:0;right:0;top:53px;height:4px;background:var(--line)}
+.t img{position:relative;display:block;width:110px;height:110px;margin:0 auto 10px;border-radius:50%;background:#fff;border:3px solid #fff;object-fit:cover}
+.t span{display:block;font-family:"Roboto Mono",ui-monospace,Menlo,monospace;font-size:15px;overflow-wrap:anywhere}
+.t:hover span{color:var(--green)}
+.new img{animation:pop .7s ease-out;border-color:var(--green)}
+@keyframes pop{0%{transform:scale(.3);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.new img{animation:none}}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>GITting Ready class wall</h1>
+<p class="sub">FEU Tech AITS, 6 Nov 2026</p>
+<p class="count"><b id="n">{{ students | size }}</b> merged pull requests</p>
+<a class="btn" href="https://github.com/alpharomercoma/gitting-ready-wall/new/main/students?filename=YOUR-USERNAME.txt&amp;value=Hello%20from%20FEU%20Tech!">Add your site</a>
+<p class="how">Change YOUR-USERNAME to your GitHub username, then Commit changes, Propose changes, Create pull request.</p>
+</header>
+<section id="grid" aria-live="polite">
+{%- for f in students -%}
+{%- assign u = f.basename -%}
+<a class="t" data-u="{{ u | escape }}" href="https://{{ u | downcase | url_encode }}.github.io/sample-ghp-deployment/"><img src="https://github.com/{{ u | url_encode }}.png?size=220" alt="" loading="lazy"><span>{{ u | escape }}</span></a>
+{%- endfor -%}
+</section>
+</main>
+<script>
+// Pick up merged pull requests without a manual refresh, so the wall updates on the big screen.
+(function () {
+  var grid = document.getElementById('grid'), n = document.getElementById('n');
+  function names(root) { return Array.prototype.map.call(root.querySelectorAll('.t'), function (a) { return a.getAttribute('data-u'); }); }
+  function poll() {
+    fetch('./?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.ok ? r.text() : null; }).then(function (html) {
+      if (!html) return;
+      var doc = new DOMParser().parseFromString(html, 'text/html'), next = doc.getElementById('grid');
+      if (!next) return;
+      var seen = names(grid);
+      Array.prototype.forEach.call(next.querySelectorAll('.t'), function (a) { if (seen.indexOf(a.getAttribute('data-u')) < 0) a.classList.add('new'); });
+      if (names(next).join() !== seen.join()) { grid.innerHTML = next.innerHTML; n.textContent = doc.getElementById('n').textContent; }
+    }).catch(function () {});
+  }
+  setInterval(poll, 20000);
+})();
+</script>
+</body>
+</html>
